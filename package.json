@@ -1,41 +1,69 @@
 {
-  "name": "guardianai-desktop",
+  "name": "guardianai",
   "version": "1.0.0",
   "description": "GuardianAI Desktop — System-level AI Security",
   "main": "src/main.js",
-  "author": "Neuronium Engineers <contact@neuronium.engineer>",
+  "author": {
+    "name": "Neuronium Engineers",
+    "email": "contact@neuronium.engineer"
+  },
   "license": "Apache-2.0",
   "scripts": {
     "start": "electron .",
     "dev": "electron . --dev",
-    "build": "electron-builder",
-    "build:win": "electron-builder --win",
-    "build:mac": "electron-builder --mac",
-    "build:linux": "electron-builder --linux"
+    "build": "electron-builder --publish never",
+    "build:win": "electron-builder --win --publish never",
+    "build:mac": "electron-builder --mac --publish never",
+    "build:linux": "electron-builder --linux --publish never"
   },
   "dependencies": {
-    "electron-store": "^8.1.0",
-    "node-notifier": "^10.0.1"
+    "electron-store": "^8.1.0"
   },
   "devDependencies": {
     "electron": "^29.0.0",
-    "electron-builder": "^24.0.0"
+    "electron-builder": "^24.13.0"
   },
   "build": {
     "appId": "engineer.neuronium.guardianai",
     "productName": "GuardianAI",
     "copyright": "© 2026 Neuronium Engineers",
-    "icon": "assets/icon",
-    "mac": {
-      "category": "public.app-category.utilities",
-      "target": ["dmg", "zip"]
+    "directories": {
+      "output": "dist"
     },
+    "files": [
+      "src/**/*",
+      "ui/**/*",
+      "assets/**/*",
+      "package.json"
+    ],
     "win": {
-      "target": ["nsis", "portable"]
+      "target": [
+        { "target": "nsis", "arch": ["x64"] }
+      ],
+      "icon": "assets/icon.ico"
+    },
+    "mac": {
+      "target": [
+        { "target": "dmg", "arch": ["x64", "arm64"] }
+      ],
+      "icon": "assets/icon.icns",
+      "category": "public.app-category.utilities"
     },
     "linux": {
-      "target": ["AppImage", "deb"],
+      "target": [
+        { "target": "AppImage", "arch": ["x64"] }
+      ],
+      "icon": "assets/icon.png",
       "category": "Utility"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "installerIcon": "assets/icon.ico",
+      "uninstallerIcon": "assets/icon.ico",
+      "installerHeaderIcon": "assets/icon.ico",
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
     }
   }
 }

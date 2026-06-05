@@ -1,0 +1,91 @@
+name: Build GuardianAI Desktop
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm install
+      - run: npm run build:win
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows-installer
+          path: dist/*.exe
+
+  build-mac:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm install
+      - run: npm run build:mac
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mac-installer
+          path: dist/*.dmg
+
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm install
+      - run: npm run build:linux
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: linux-installer
+          path: dist/*.AppImage
+
+  release:
+    needs: [build-windows, build-mac, build-linux]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: dist/**/*
+          name: GuardianAI Desktop ${{ github.ref_name }}
+          body: |
+            ## GuardianAI Desktop ${{ github.ref_name }}
+
+            **The Security Layer for AI Systems** — by Neuronium Engineers
+
+            ### Download
+            | Platform | File |
+            |----------|------|
+            | Windows | `GuardianAI-Setup-*.exe` |
+            | macOS | `GuardianAI-*.dmg` |
+            | Linux | `GuardianAI-*.AppImage` |
+
+            ### Installation
+            - **Windows:** Download `.exe` → Run → Install
+            - **macOS:** Download `.dmg` → Drag to Applications
+            - **Linux:** Download `.AppImage` → `chmod +x` → Run
+
+            ### Setup
+            1. Launch GuardianAI
+            2. Go to Settings → enter API key (`gai_live_xxx`)
+            3. Get key at https://guardianai-self.vercel.app/keys
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
