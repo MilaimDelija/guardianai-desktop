@@ -6,6 +6,9 @@ on:
       - 'v*'
   workflow_dispatch:
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   build-windows:
     runs-on: windows-latest
@@ -14,14 +17,15 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      - run: npm install
-      - run: npm run build:win
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Install dependencies
+        run: npm install
+      - name: Build Windows
+        run: npx electron-builder --win --publish never
       - uses: actions/upload-artifact@v4
         with:
           name: windows-installer
           path: dist/*.exe
+          if-no-files-found: warn
 
   build-mac:
     runs-on: macos-latest
@@ -30,14 +34,15 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      - run: npm install
-      - run: npm run build:mac
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Install dependencies
+        run: npm install
+      - name: Build macOS
+        run: npx electron-builder --mac --publish never
       - uses: actions/upload-artifact@v4
         with:
           name: mac-installer
           path: dist/*.dmg
+          if-no-files-found: warn
 
   build-linux:
     runs-on: ubuntu-latest
@@ -46,29 +51,37 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      - run: npm install
-      - run: npm run build:linux
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Install dependencies
+        run: npm install
+      - name: Install Linux deps
+        run: sudo apt-get install -y rpm fakeroot
+      - name: Build Linux
+        run: npx electron-builder --linux --publish never
       - uses: actions/upload-artifact@v4
         with:
           name: linux-installer
           path: dist/*.AppImage
+          if-no-files-found: warn
 
   release:
     needs: [build-windows, build-mac, build-linux]
     runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
     steps:
       - uses: actions/download-artifact@v4
         with:
           path: dist
-      - uses: softprops/action-gh-release@v2
+          merge-multiple: true
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
         with:
-          files: dist/**/*
+          files: |
+            dist/*.exe
+            dist/*.dmg
+            dist/*.AppImage
           name: GuardianAI Desktop ${{ github.ref_name }}
           body: |
             ## GuardianAI Desktop ${{ github.ref_name }}
-
             **The Security Layer for AI Systems** — by Neuronium Engineers
 
             ### Download
@@ -81,11 +94,11 @@ jobs:
             ### Installation
             - **Windows:** Download `.exe` → Run → Install
             - **macOS:** Download `.dmg` → Drag to Applications
-            - **Linux:** Download `.AppImage` → `chmod +x` → Run
+            - **Linux:** Download `.AppImage` → chmod +x → Run
 
             ### Setup
             1. Launch GuardianAI
-            2. Go to Settings → enter API key (`gai_live_xxx`)
+            2. Settings → enter API key (`gai_live_xxx`)
             3. Get key at https://guardianai-self.vercel.app/keys
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
