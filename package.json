@@ -1,0 +1,41 @@
+{
+  "name": "guardianai-desktop",
+  "version": "1.0.0",
+  "description": "GuardianAI Desktop — System-level AI Security",
+  "main": "src/main.js",
+  "author": "Neuronium Engineers <contact@neuronium.engineer>",
+  "license": "Apache-2.0",
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron . --dev",
+    "build": "electron-builder",
+    "build:win": "electron-builder --win",
+    "build:mac": "electron-builder --mac",
+    "build:linux": "electron-builder --linux"
+  },
+  "dependencies": {
+    "electron-store": "^8.1.0",
+    "node-notifier": "^10.0.1"
+  },
+  "devDependencies": {
+    "electron": "^29.0.0",
+    "electron-builder": "^24.0.0"
+  },
+  "build": {
+    "appId": "engineer.neuronium.guardianai",
+    "productName": "GuardianAI",
+    "copyright": "© 2026 Neuronium Engineers",
+    "icon": "assets/icon",
+    "mac": {
+      "category": "public.app-category.utilities",
+      "target": ["dmg", "zip"]
+    },
+    "win": {
+      "target": ["nsis", "portable"]
+    },
+    "linux": {
+      "target": ["AppImage", "deb"],
+      "category": "Utility"
+    }
+  }
+}
