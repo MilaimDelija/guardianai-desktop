@@ -20,11 +20,15 @@ jobs:
       - name: Install dependencies
         run: npm install
       - name: Build Windows
-        run: npx electron-builder --win --publish never
+        run: npx electron-builder --win --x64 --publish never
+        env:
+          DEBUG: electron-builder
       - uses: actions/upload-artifact@v4
         with:
           name: windows-installer
-          path: dist/*.exe
+          path: |
+            dist/*.exe
+            dist/*.msi
           if-no-files-found: warn
 
   build-mac:
@@ -53,8 +57,8 @@ jobs:
           node-version: 20
       - name: Install dependencies
         run: npm install
-      - name: Install Linux deps
-        run: sudo apt-get install -y rpm fakeroot
+      - name: Install Linux build deps
+        run: sudo apt-get install -y rpm fakeroot dpkg
       - name: Build Linux
         run: npx electron-builder --linux --publish never
       - uses: actions/upload-artifact@v4
@@ -75,30 +79,18 @@ jobs:
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
-          files: |
-            dist/*.exe
-            dist/*.dmg
-            dist/*.AppImage
+          files: dist/**
           name: GuardianAI Desktop ${{ github.ref_name }}
           body: |
             ## GuardianAI Desktop ${{ github.ref_name }}
             **The Security Layer for AI Systems** — by Neuronium Engineers
 
-            ### Download
-            | Platform | File |
-            |----------|------|
+            | Platform | Download |
+            |----------|----------|
             | Windows | `GuardianAI-Setup-*.exe` |
             | macOS | `GuardianAI-*.dmg` |
             | Linux | `GuardianAI-*.AppImage` |
 
-            ### Installation
-            - **Windows:** Download `.exe` → Run → Install
-            - **macOS:** Download `.dmg` → Drag to Applications
-            - **Linux:** Download `.AppImage` → chmod +x → Run
-
-            ### Setup
-            1. Launch GuardianAI
-            2. Settings → enter API key (`gai_live_xxx`)
-            3. Get key at https://guardianai-self.vercel.app/keys
+            **Setup:** Launch → Settings → Enter API key from https://guardianai-self.vercel.app/keys
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

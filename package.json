@@ -1,7 +1,7 @@
 {
   "name": "guardianai",
   "version": "1.0.0",
-  "description": "GuardianAI Desktop — System-level AI Security",
+  "description": "GuardianAI Desktop \u2014 System-level AI Security",
   "main": "src/main.js",
   "author": {
     "name": "Neuronium Engineers",
@@ -26,7 +26,7 @@
   "build": {
     "appId": "engineer.neuronium.guardianai",
     "productName": "GuardianAI",
-    "copyright": "© 2026 Neuronium Engineers",
+    "copyright": "\u00a9 2026 Neuronium Engineers",
     "directories": {
       "output": "dist"
     },
@@ -38,30 +38,40 @@
     ],
     "win": {
       "target": [
-        { "target": "nsis", "arch": ["x64"] }
-      ],
-      "icon": "assets/icon.ico"
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
     },
     "mac": {
       "target": [
-        { "target": "dmg", "arch": ["x64", "arm64"] }
+        {
+          "target": "dmg",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
+        }
       ],
-      "icon": "assets/icon.icns",
       "category": "public.app-category.utilities"
     },
     "linux": {
       "target": [
-        { "target": "AppImage", "arch": ["x64"] }
+        {
+          "target": "AppImage",
+          "arch": [
+            "x64"
+          ]
+        }
       ],
-      "icon": "assets/icon.png",
       "category": "Utility"
     },
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
-      "installerIcon": "assets/icon.ico",
-      "uninstallerIcon": "assets/icon.ico",
-      "installerHeaderIcon": "assets/icon.ico",
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true
     }
