@@ -9,6 +9,9 @@ on:
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
+permissions:
+  contents: write
+
 jobs:
   build-windows:
     runs-on: windows-latest
@@ -17,18 +20,12 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      - name: Install dependencies
-        run: npm install
-      - name: Build Windows
-        run: npx electron-builder --win --x64 --publish never
-        env:
-          DEBUG: electron-builder
+      - run: npm install
+      - run: npx electron-builder --win --x64 --publish never
       - uses: actions/upload-artifact@v4
         with:
           name: windows-installer
-          path: |
-            dist/*.exe
-            dist/*.msi
+          path: dist/*.exe
           if-no-files-found: warn
 
   build-mac:
@@ -38,10 +35,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      - name: Install dependencies
-        run: npm install
-      - name: Build macOS
-        run: npx electron-builder --mac --publish never
+      - run: npm install
+      - run: npx electron-builder --mac --publish never
       - uses: actions/upload-artifact@v4
         with:
           name: mac-installer
@@ -55,12 +50,9 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      - name: Install dependencies
-        run: npm install
-      - name: Install Linux build deps
-        run: sudo apt-get install -y rpm fakeroot dpkg
-      - name: Build Linux
-        run: npx electron-builder --linux --publish never
+      - run: npm install
+      - run: sudo apt-get install -y rpm fakeroot dpkg
+      - run: npx electron-builder --linux --publish never
       - uses: actions/upload-artifact@v4
         with:
           name: linux-installer
@@ -71,26 +63,27 @@ jobs:
     needs: [build-windows, build-mac, build-linux]
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/')
+    permissions:
+      contents: write
     steps:
       - uses: actions/download-artifact@v4
         with:
           path: dist
           merge-multiple: true
-      - name: Create Release
-        uses: softprops/action-gh-release@v2
-        with:
-          files: dist/**
-          name: GuardianAI Desktop ${{ github.ref_name }}
-          body: |
-            ## GuardianAI Desktop ${{ github.ref_name }}
-            **The Security Layer for AI Systems** — by Neuronium Engineers
 
-            | Platform | Download |
-            |----------|----------|
-            | Windows | `GuardianAI-Setup-*.exe` |
-            | macOS | `GuardianAI-*.dmg` |
-            | Linux | `GuardianAI-*.AppImage` |
+      - name: List files
+        run: find dist -type f
 
-            **Setup:** Launch → Settings → Enter API key from https://guardianai-self.vercel.app/keys
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Upload to Release
+        run: |
+          for file in dist/*.exe dist/*.dmg dist/*.AppImage; do
+            [ -f "$file" ] || continue
+            filename=$(basename "$file")
+            echo "Uploading $filename..."
+            curl -L \
+              -X POST \
+              -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+              -H "Content-Type: application/octet-stream" \
+              --data-binary @"$file" \
+              "https://uploads.github.com/repos/${{ github.repository }}/releases/$(curl -sL -H 'Authorization: token ${{ secrets.GITHUB_TOKEN }}' https://api.github.com/repos/${{ github.repository }}/releases/tags/${{ github.ref_name }} | python3 -c 'import sys,json; print(json.load(sys.stdin)[\"id\"])')/assets?name=$filename"
+          done
